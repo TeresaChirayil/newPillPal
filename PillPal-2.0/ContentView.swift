@@ -56,46 +56,85 @@ struct ContentView: View {
         }
     }
     
+
     struct CameraScreen: View {
         var body: some View {
-            Image(systemName: "camera")
-                .resizable()
-                .frame(width: 30, height: 30)
+            ZStack{
+                Color(red: 122/255, green: 198/255, blue: 227/255)
+                    .ignoresSafeArea()
+                Text("Camera")
+            }
+            TabView()
         }
     }
     
     struct PillScreen: View {
         var body: some View {
-            Image(systemName: "pill")
-                .resizable()
-                .frame(width: 30, height: 30)
+            ZStack{
+                Color(red: 122/255, green: 198/255, blue: 227/255)
+                    .ignoresSafeArea()
+                Text("Pill")
+            }
+            TabView()
         }
     }
     
     struct SearchScreen: View {
         var body: some View {
-            Image(systemName: "magnifyingglass")
-                .resizable()
-                .frame(width: 30, height: 30)
+            ZStack{
+                Color(red: 122/255, green: 198/255, blue: 227/255)
+                    .ignoresSafeArea()
+                Text("Search")
+            }
+            TabView()
         }
     }
     
     struct TabView: View {
+        @State private var navigateToPillScreen = false
+        @State private var navigateToCameraScreen = false
+        @State private var navigateToSearchScreen = false
+        
+        
         var body: some View {
-            Text("TabView")
             HStack{
+                Button(action: {
+                    navigateToPillScreen = true
+                }, label: {
+                    Image(systemName: "pill")
+                        .resizable()
+                        .frame(width: 30, height: 30)
+                        .foregroundColor(.black)
+                    Text("       ")
+                })
+                .navigationDestination(isPresented: $navigateToPillScreen) {
+                    PillScreen()
+                }
                 
-                Image(systemName: "camera")
-                    .resizable()
-                    .frame(width: 30, height: 30)
+                Button(action: {
+                    navigateToCameraScreen = true
+                }, label: {
+                    Image(systemName: "camera")
+                        .resizable()
+                        .frame(width: 30, height: 30)
+                        .foregroundColor(.black)
+                    Text("       ")
+                })
+                .navigationDestination(isPresented: $navigateToCameraScreen) {
+                    CameraScreen()
+                }
                 
-                Image(systemName: "pill")
-                    .resizable()
-                    .frame(width: 30, height: 30)
-                
-                Image(systemName: "magnifying glass")
-                    .resizable()
-                    .frame(width: 30, height: 30)
+                Button(action: {
+                    navigateToSearchScreen = true
+                }, label: {
+                    Image(systemName: "magnifyingglass")
+                        .resizable()
+                        .frame(width: 30, height: 30)
+                        .foregroundColor(.black)
+                })
+                .navigationDestination(isPresented: $navigateToSearchScreen) {
+                    SearchScreen()
+                }
                 
             }
         }
@@ -241,59 +280,123 @@ struct ContentView: View {
     }
 
     
-    struct MyMedicationsView: View {
-        @ObservedObject var viewModel: MedicationViewModel
-        @State private var showingAddMedication = false
-        
-        var body: some View {
-            ZStack {
-                Color(red: 122/255, green: 198/255, blue: 227/255)
-                    .ignoresSafeArea()
-                
-                VStack {
-                    Text("My Medications")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding(.top, 50)
-                    
-                    List {
-                        ForEach(viewModel.medications) { med in
-                            VStack(alignment: .leading) {
-                                Text(med.name)
-                                    .font(.headline)
-                                Text("Frequency: \(med.frequency)")
-                                    .font(.subheadline)
-                                ForEach(med.reminderTimes, id: \.self) { time in
-                                    Text("⏰ \(time.formatted(date: .omitted, time: .shortened))")
-                                        .font(.caption)
-                                }
+//    struct MyMedicationsView: View {
+//        @ObservedObject var viewModel: MedicationViewModel
+//        @State private var showingAddMedication = false
+//        //@State private var navigateToAddMedication = false
+//        
+//        var body: some View {
+//            ZStack {
+//                Color(red: 122/255, green: 198/255, blue: 227/255)
+//                    .ignoresSafeArea()
+//                
+//                VStack {
+//                    Text("My Medications")
+//                        .font(.largeTitle)
+//                        .fontWeight(.bold)
+//                        .foregroundColor(.white)
+//                        .padding(.top, 50)
+//                    
+//                    List {
+//                        ForEach(viewModel.medications) { med in
+//                            VStack(alignment: .leading) {
+//                                Text(med.name)
+//                                    .font(.headline)
+//                                Text("Frequency: \(med.frequency)")
+//                                    .font(.subheadline)
+//                                ForEach(med.reminderTimes, id: \.self) { time in
+//                                    Text("⏰ \(time.formatted(date: .omitted, time: .shortened))")
+//                                        .font(.caption)
+//                                }
+//                            }
+//                        }
+//                    }
+//                    
+//                    //Spacer()
+//                    
+//                    
+//                        //Spacer()
+//                        Button(action: {
+//                            showingAddMedication = true
+//                            //navigateToAddMedication = true
+//                        }) {
+//                            Image(systemName: "plus.circle.fill")
+//                                .resizable()
+//                                .frame(width: 50, height: 50)
+//                                .foregroundColor(.white)
+//                                .shadow(radius: 4)
+//                                .position(x: 350, y: -400)
+//                        }
+//                        //TabView()
+//                        .padding()
+//                    
+////                    .navigationDestination(isPresented: $navigateToAddMedication) {
+////                        AddMedicationView(viewModel: viewModel)
+////                    }
+//                    .sheet(isPresented: $showingAddMedication) {
+//                                AddMedicationView(viewModel: viewModel)
+//                            }
+//                }
+//            }
+//        }
+//    }
+
+struct MyMedicationsView: View {
+    @ObservedObject var viewModel: MedicationViewModel
+    @State private var showingAddMedication = false
+
+    var body: some View {
+        ZStack {
+            Color(red: 122/255, green: 198/255, blue: 227/255)
+                .ignoresSafeArea()
+
+            VStack {
+                HStack {
+                    Spacer()
+
+                    Button(action: {
+                        showingAddMedication = true
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .foregroundColor(.white)
+                            .shadow(radius: 4)
+                    }
+                    .padding(.trailing, 20)
+                    .padding(.top, 50)
+                }
+
+                Text("My Medications")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding(.top, 20)
+
+
+                List {
+                    ForEach(viewModel.medications) { med in
+                        VStack(alignment: .leading) {
+                            Text(med.name)
+                                .font(.headline)
+                            Text("Frequency: \(med.frequency)")
+                                .font(.subheadline)
+                            ForEach(med.reminderTimes, id: \.self) { time in
+                                Text("⏰ \(time.formatted(date: .omitted, time: .shortened))")
+                                    .font(.caption)
                             }
                         }
                     }
-                    
-                    Spacer()
-                    
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            showingAddMedication = true
-                        }) {
-                            Image(systemName: "plus.circle.fill")
-                                .resizable()
-                                .frame(width: 50, height: 50)
-                                .foregroundColor(.white)
-                                .shadow(radius: 4)
-                        }
-                        .padding()
-                        .sheet(isPresented: $showingAddMedication) {
-                            AddMedicationView(viewModel: viewModel)
-                        }
-                    }
                 }
+                TabView()
             }
         }
+        .sheet(isPresented: $showingAddMedication) {
+            AddMedicationView(viewModel: viewModel)
+        }
     }
+}
+
    
     
     //import UserNotifications
