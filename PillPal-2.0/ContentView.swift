@@ -1,4 +1,94 @@
 import SwiftUI
+import CoreML
+import Vision
+
+//func testModel() -> PillPalImageClassifier_1Output? {
+//    do{
+//        let config = MLModelConfiguration()
+//        
+//        let model = try PillPalImageClassifier_1(configuration: config)
+//        
+////        let prediction = try model.prediction(image: #imageLiteral(resourceName: "testImage"))
+//    }
+//    catch{
+//        
+//    }
+//    return nil
+//}
+//
+//struct MLView: View {
+//    let predictedClass = testModel()!.class_type
+//    
+//    var body: some View {
+//        Text("Pill Identifier")
+//            .padding()
+//        Text(String(predictedClass))
+//    }
+//}
+
+
+
+//struct MLView: View {
+//    @State private var showPicker = false
+//    @State private var image: UIImage?
+//    @State private var predictionLabel = "Pick an image to classify"
+//
+//    var body: some View {
+//        VStack {
+//            if let image = image {
+//                Image(uiImage: image)
+//                    .resizable()
+//                    .scaledToFit()
+//                    .frame(height: 300)
+//                    .cornerRadius(10)
+//            }
+//
+//            Text(predictionLabel)
+//                .padding()
+//
+//            Button("Pick Image") {
+//                showPicker = true
+//            }
+//            .padding()
+//        }
+//        .sheet(isPresented: $showPicker) {
+//            ImagePicker(image: $image, onImagePicked: classifyImage)
+//        }
+//    }
+//
+//    func classifyImage() {
+//        guard let uiImage = image,
+//              let cgImage = uiImage.cgImage else {
+//            predictionLabel = "Invalid image"
+//            return
+//        }
+//
+//        do {
+//            let model = try VNCoreMLModel(for: PillPalImageClassifier_1(configuration: MLModelConfiguration()).model)
+//
+//            let request = VNCoreMLRequest(model: model) { request, error in
+//                if let results = request.results as? [VNClassificationObservation],
+//                   let topResult = results.first {
+//                    DispatchQueue.main.async {
+//                        predictionLabel = "Prediction: \(topResult.identifier) (\(Int(topResult.confidence * 100))%)"
+//                    }
+//                } else {
+//                    DispatchQueue.main.async {
+//                        predictionLabel = "Could not classify"
+//                    }
+//                }
+//            }
+//
+//            let handler = VNImageRequestHandler(cgImage: cgImage)
+//            try handler.perform([request])
+//
+//        } catch {
+//            predictionLabel = "Failed: \(error.localizedDescription)"
+//        }
+//    }
+//}
+
+
 
 struct ContentView: View {
     @StateObject var medViewModel = MedicationViewModel()
@@ -62,38 +152,115 @@ struct ContentView: View {
             ZStack{
                 Color(red: 122/255, green: 198/255, blue: 227/255)
                     .ignoresSafeArea()
-                Text("Camera")
+                //Text("Camera")
+                CameraConetntView()
             }
             TabView()
         }
     }
     
     struct PillScreen: View {
+        @StateObject var medViewModel = MedicationViewModel()
         var body: some View {
             ZStack{
                 Color(red: 122/255, green: 198/255, blue: 227/255)
                     .ignoresSafeArea()
                 Text("Pill")
             }
-            TabView()
+            //TabView()
+            MyMedicationsView(viewModel: medViewModel)
         }
     }
     
     struct SearchScreen: View {
+        @State private var messageText = ""
+        @State var messages: [String] = ["Welcome to Chat Bot 2.0"]
         var body: some View {
-            ZStack{
-                Color(red: 122/255, green: 198/255, blue: 227/255)
-                    .ignoresSafeArea()
-                Text("Search")
+            VStack{
+                HStack{
+                    Text("iBot")
+                        . font(.largeTitle)
+                        .bold()
+                    
+                    Image(systemName: "bubble.left.fill")
+                        .font(.system(size: 26))
+                        .foregroundColor(Color.blue)
+                }
+                ScrollView{
+                    //messages
+                    ForEach(messages, id: \.self){ message in
+                        if message.contains("[USER]"){
+                            let newMessage = message.replacingOccurrences(of: "[USER]", with: "")
+                            HStack{
+                                Spacer()
+                                Text(newMessage)
+                                    .padding()
+                                    .foregroundColor(.white)
+                                    .background(.blue.opacity(0.8))
+                                    .cornerRadius(10)
+                                    .padding(.horizontal, 16)
+                                    .padding(.bottom, 10)
+                            }
+                        }
+                        else{
+                            HStack{
+                                Text(message)
+                                    .padding()
+                                    .background(.gray.opacity(0.15))
+                                    .cornerRadius(10)
+                                    .padding(.horizontal, 16)
+                                    .padding(.bottom, 10)
+                                Spacer()
+                            }
+                        }
+                        
+                    }.rotationEffect(.degrees(180))
+                }.rotationEffect(.degrees(180))
+                    .background(Color.gray.opacity(0.1))
+                
+                HStack{
+                    TextField("Type something", text: $messageText)
+                        .padding()
+                        .background(Color.gray.opacity(0.1))
+                        .cornerRadius(10)
+                        .onSubmit{
+                            //sendMessage
+                            sendMessage(message: messageText)
+                        }
+                    Button{
+                        //sendMessage
+                        sendMessage(message: messageText)
+                    }label: {
+                        Image(systemName: "paperplane.fill")
+                    }
+                    .font(.system(size: 26))
+                    .padding(.horizontal, 10)
+                }
+                .padding()
             }
             TabView()
         }
+        func sendMessage(message: String){
+            withAnimation{
+                messages.append("[USER]" + message)
+                self.messageText = ""
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1){
+                withAnimation {
+                    messages.append(getBotResponse(message: message))
+                }
+                
+            }
+        }
+
     }
     
     struct TabView: View {
         @State private var navigateToPillScreen = false
         @State private var navigateToCameraScreen = false
         @State private var navigateToSearchScreen = false
+
         
         
         var body: some View {
@@ -103,12 +270,12 @@ struct ContentView: View {
                 }, label: {
                     Image(systemName: "pill")
                         .resizable()
-                        .frame(width: 30, height: 30)
+                        .frame(width: 40, height: 40)
                         .foregroundColor(.black)
-                    Text("       ")
+                    Text("                    ")
                 })
                 .navigationDestination(isPresented: $navigateToPillScreen) {
-                    PillScreen()
+                    MyMedicationsView(viewModel: MedicationViewModel())
                 }
                 
                 Button(action: {
@@ -116,9 +283,9 @@ struct ContentView: View {
                 }, label: {
                     Image(systemName: "camera")
                         .resizable()
-                        .frame(width: 30, height: 30)
+                        .frame(width: 40, height: 40)
                         .foregroundColor(.black)
-                    Text("       ")
+                    Text("                    ")
                 })
                 .navigationDestination(isPresented: $navigateToCameraScreen) {
                     CameraScreen()
@@ -129,7 +296,7 @@ struct ContentView: View {
                 }, label: {
                     Image(systemName: "magnifyingglass")
                         .resizable()
-                        .frame(width: 30, height: 30)
+                        .frame(width: 40, height: 40)
                         .foregroundColor(.black)
                 })
                 .navigationDestination(isPresented: $navigateToSearchScreen) {
@@ -279,70 +446,65 @@ struct ContentView: View {
         }
     }
 
-    
-//    struct MyMedicationsView: View {
-//        @ObservedObject var viewModel: MedicationViewModel
-//        @State private var showingAddMedication = false
-//        //@State private var navigateToAddMedication = false
-//        
-//        var body: some View {
-//            ZStack {
-//                Color(red: 122/255, green: 198/255, blue: 227/255)
-//                    .ignoresSafeArea()
-//                
-//                VStack {
-//                    Text("My Medications")
-//                        .font(.largeTitle)
-//                        .fontWeight(.bold)
-//                        .foregroundColor(.white)
-//                        .padding(.top, 50)
-//                    
-//                    List {
-//                        ForEach(viewModel.medications) { med in
-//                            VStack(alignment: .leading) {
-//                                Text(med.name)
-//                                    .font(.headline)
-//                                Text("Frequency: \(med.frequency)")
-//                                    .font(.subheadline)
-//                                ForEach(med.reminderTimes, id: \.self) { time in
-//                                    Text("⏰ \(time.formatted(date: .omitted, time: .shortened))")
-//                                        .font(.caption)
-//                                }
+
+//struct MyMedicationsView: View {
+//    @ObservedObject var viewModel: MedicationViewModel
+//    @State private var showingAddMedication = false
+//
+//    var body: some View {
+//        ZStack {
+//            Color(red: 122/255, green: 198/255, blue: 227/255)
+//                .ignoresSafeArea()
+//
+//            VStack {
+//                HStack {
+//                    Spacer()
+//
+//                    Button(action: {
+//                        showingAddMedication = true
+//                    }) {
+//                        Image(systemName: "plus.circle.fill")
+//                            .resizable()
+//                            .frame(width: 40, height: 40)
+//                            .foregroundColor(.white)
+//                            .shadow(radius: 4)
+//                    }
+//                    .padding(.trailing, 20)
+//                    .padding(.top, 50)
+//                }
+//
+//                Text("My Medications")
+//                    .font(.largeTitle)
+//                    .fontWeight(.bold)
+//                    .foregroundColor(.white)
+//                    .padding(.top, 20)
+//
+//
+//                List {
+//                    ForEach(viewModel.medications) { med in
+//                        VStack(alignment: .leading) {
+//                            Text(med.name)
+//                                .font(.headline)
+//                            Text("Frequency: \(med.frequency)")
+//                                .font(.subheadline)
+//                            ForEach(med.reminderTimes, id: \.self) { time in
+//                                Text("⏰ \(time.formatted(date: .omitted, time: .shortened))")
+//                                    .font(.caption)
 //                            }
 //                        }
 //                    }
-//                    
-//                    //Spacer()
-//                    
-//                    
-//                        //Spacer()
-//                        Button(action: {
-//                            showingAddMedication = true
-//                            //navigateToAddMedication = true
-//                        }) {
-//                            Image(systemName: "plus.circle.fill")
-//                                .resizable()
-//                                .frame(width: 50, height: 50)
-//                                .foregroundColor(.white)
-//                                .shadow(radius: 4)
-//                                .position(x: 350, y: -400)
-//                        }
-//                        //TabView()
-//                        .padding()
-//                    
-////                    .navigationDestination(isPresented: $navigateToAddMedication) {
-////                        AddMedicationView(viewModel: viewModel)
-////                    }
-//                    .sheet(isPresented: $showingAddMedication) {
-//                                AddMedicationView(viewModel: viewModel)
-//                            }
 //                }
+//                TabView()
 //            }
 //        }
+//        .sheet(isPresented: $showingAddMedication) {
+//            AddMedicationView(viewModel: viewModel)
+//        }
 //    }
+//}
 
 struct MyMedicationsView: View {
-    @ObservedObject var viewModel: MedicationViewModel
+    @StateObject var viewModel = MedicationViewModel()
     @State private var showingAddMedication = false
 
     var body: some View {
@@ -373,29 +535,46 @@ struct MyMedicationsView: View {
                     .foregroundColor(.white)
                     .padding(.top, 20)
 
-
-                List {
-                    ForEach(viewModel.medications) { med in
-                        VStack(alignment: .leading) {
-                            Text(med.name)
-                                .font(.headline)
-                            Text("Frequency: \(med.frequency)")
-                                .font(.subheadline)
-                            ForEach(med.reminderTimes, id: \.self) { time in
-                                Text("⏰ \(time.formatted(date: .omitted, time: .shortened))")
-                                    .font(.caption)
+                if viewModel.medications.isEmpty {
+                    Text("No medications added yet")
+                        .foregroundColor(.white)
+                        .padding(.top, 50)
+                } else {
+                    List {
+                        ForEach(viewModel.medications) { med in
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(med.name)
+                                    .font(.headline)
+                                Text("Frequency: \(med.frequency)")
+                                    .font(.subheadline)
+                                ForEach(med.reminderTimes, id: \.self) { time in
+                                    Text("⏰ \(time.formatted(date: .omitted, time: .shortened))")
+                                        .font(.caption)
+                                }
                             }
+                            .padding(.vertical, 5)
                         }
+                        .onDelete(perform: deleteMedication)
                     }
+//                    .scrollContentBackground(.hidden) // transparent background
+//                    .frame(maxHeight: .infinity)
                 }
+
+                Spacer()
                 TabView()
+
             }
         }
         .sheet(isPresented: $showingAddMedication) {
             AddMedicationView(viewModel: viewModel)
         }
     }
+
+    private func deleteMedication(at offsets: IndexSet) {
+        viewModel.medications.remove(atOffsets: offsets)
+    }
 }
+
 
    
     
