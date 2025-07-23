@@ -19,7 +19,7 @@ func getBotResponse(message: String) -> String {
     else if tempMessage.contains("goodbye") {
         return "Goodbye!"
     }
-    else if tempMessage.contains("pain") || tempMessage.contains("inflammation") || tempMessage.contains("fever") {
+    else if tempMessage.contains("pain") || tempMessage.contains("inflammation") || tempMessage.contains("fever") || tempMessage.contains("headache") {
         return "I recommend taking Ibuproen."
     }
     else if tempMessage.contains("acid reflux"){

@@ -107,12 +107,19 @@ struct ContentView: View {
                 Color(red: 122/255, green: 198/255, blue: 227/255)
                     .ignoresSafeArea()
                 
-                VStack(spacing: 40) {
+                VStack(spacing: 30) {
                     Text("PillPal")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .shadow(radius: 2)
+                    
+                    Image("pillpal4")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 350, height: 350)
+                        
+                    
                     
                     VStack(spacing: 20) {
                         NavigationLink(destination: LoginView(viewModel: medViewModel)) {
@@ -177,16 +184,22 @@ struct ContentView: View {
         @State var messages: [String] = ["Welcome to Chat Bot 2.0"]
         var body: some View {
             VStack{
+                
                 HStack{
                     Text("iBot")
-                        . font(.largeTitle)
+                        .font(.largeTitle)
                         .bold()
                     
                     Image(systemName: "bubble.left.fill")
                         .font(.system(size: 26))
                         .foregroundColor(Color.blue)
+                    
+                    
                 }
+                Text("Disclaimar: PillPal is designed for informational and  educational purposes only.This app does not  provide medical diagnosis, treatment, or  professional medical advice. Always consult a  qualified healthcare provider, pharmacist, or  doctor with any questions you may have  regarding a medical condition, medication, or  treatment plan.")
+                    .font(.caption)
                 ScrollView{
+                    
                     //messages
                     ForEach(messages, id: \.self){ message in
                         if message.contains("[USER]"){
@@ -320,6 +333,11 @@ struct ContentView: View {
                     Color.white.ignoresSafeArea()
                     
                     VStack(spacing: 30) {
+                        Image("LogInPic")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 350, height: 350)
+                        
                         Text("Log In")
                             .font(.largeTitle)
                             .fontWeight(.bold)
