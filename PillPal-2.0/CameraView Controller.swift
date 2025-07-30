@@ -15,7 +15,7 @@ struct CameraConetntView: View {
     @State private var image: UIImage?
     @State private var showCamera = false
     @State private var predictionLabel = "No image selected"
-
+    
     var body: some View {
         VStack {
             if let image = image {
@@ -24,12 +24,14 @@ struct CameraConetntView: View {
                     .scaledToFit()
                     .frame(height: 300)
                     .cornerRadius(20)
+                
+                
             }
-
-
+            
+            
             Text(predictionLabel)
                 .padding()
-
+            
             HStack(spacing: 20) {
                 Button(action: {
                     showCamera = true
@@ -42,7 +44,7 @@ struct CameraConetntView: View {
                         .foregroundStyle(.black)
                         .cornerRadius(25)
                 }
-
+                
                 PhotosPicker(
                     selection: $selectedItem,
                     matching: .images
@@ -57,7 +59,7 @@ struct CameraConetntView: View {
                 }
             }
             .padding(.top)
-
+            
         }
         .padding()
         .sheet(isPresented: $showCamera) {
@@ -80,36 +82,46 @@ struct CameraConetntView: View {
             }
         }
     }
-
+    
+    // Function to classify an image using a CoreML model
     func classifyImage() {
+        // Safely unwrap the optional `image` and convert it to `cgImage`
         guard let uiImage = image,
               let cgImage = uiImage.cgImage else {
+            // If the image is invalid or can't be converted, show an error message
             predictionLabel = "Invalid image"
             return
         }
-
+        
         do {
-            //let model = try VNCoreMLModel(for: PillPalImageClassifier_1(configuration: MLModelConfiguration()).model)
-            
+            // Load the CoreML model named "Pillpal" with a default configuration
             let model = try VNCoreMLModel(for: Pillpal(configuration: MLModelConfiguration()).model)
-
+            
+            // Create a Vision request using the model
             let request = VNCoreMLRequest(model: model) { request, error in
+                // Cast the results as an array of classification observations
                 if let results = request.results as? [VNClassificationObservation],
                    let topResult = results.first {
+                    // If successful, update the UI with the top prediction (on the main thread)
                     DispatchQueue.main.async {
                         predictionLabel = "Prediction: \(topResult.identifier) (\(Int(topResult.confidence * 100))%)"
                     }
                 } else {
+                    // If the classification failed, update the UI with an error message
                     DispatchQueue.main.async {
                         predictionLabel = "Could not classify"
                     }
                 }
             }
-
+            
+            // Create a handler to run the image through the Vision request
             let handler = VNImageRequestHandler(cgImage: cgImage)
+            
+            // Perform the classification request
             try handler.perform([request])
-
+            
         } catch {
+            // If any errors occur (e.g., model fails to load), show an error message
             predictionLabel = "Failed: \(error.localizedDescription)"
         }
     }

@@ -157,9 +157,15 @@ struct ContentView: View {
     struct CameraScreen: View {
         var body: some View {
             ZStack{
-                Color(red: 122/255, green: 198/255, blue: 227/255)
+                @State var camColor = Color(red: 122/255, green: 198/255, blue: 227/255)
                     .ignoresSafeArea()
-                //Text("Camera")
+                Color("MedCol").ignoresSafeArea()
+                Image(systemName: "camera")
+                    .resizable()
+                    .frame(width: 150, height: 120)
+                    .foregroundColor(.black)
+                    .offset(y: -170)
+                
                 CameraConetntView()
             }
             TabView()
@@ -196,61 +202,72 @@ struct ContentView: View {
                     
                     
                 }
-                Text("Disclaimar: PillPal is designed for informational and  educational purposes only.This app does not  provide medical diagnosis, treatment, or  professional medical advice. Always consult a  qualified healthcare provider, pharmacist, or  doctor with any questions you may have  regarding a medical condition, medication, or  treatment plan.")
-                    .font(.caption)
-                ScrollView{
-                    
-                    //messages
-                    ForEach(messages, id: \.self){ message in
-                        if message.contains("[USER]"){
+                
+                // Scrollable view to display chat messages
+                ScrollView {
+                    // Loop through each message in the messages array
+                    ForEach(messages, id: \.self) { message in
+                        
+                        // Check if the message is from the user (marked with [USER] prefix)
+                        if message.contains("[USER]") {
+                            // Remove the [USER] prefix to display a cleaner message
                             let newMessage = message.replacingOccurrences(of: "[USER]", with: "")
-                            HStack{
-                                Spacer()
+                            
+                            // Right-aligned user message bubble
+                            HStack {
+                                Spacer() // Pushes content to the right side
                                 Text(newMessage)
                                     .padding()
-                                    .foregroundColor(.white)
-                                    .background(.blue.opacity(0.8))
+                                    .foregroundColor(.white) // White text
+                                    .background(.blue.opacity(0.8)) // Blue bubble background
                                     .cornerRadius(10)
                                     .padding(.horizontal, 16)
                                     .padding(.bottom, 10)
                             }
-                        }
-                        else{
-                            HStack{
+                        } else {
+                            // Left-aligned bot (or system) message bubble
+                            HStack {
                                 Text(message)
                                     .padding()
-                                    .background(.gray.opacity(0.15))
+                                    .background(.gray.opacity(0.15)) // Light gray bubble
                                     .cornerRadius(10)
                                     .padding(.horizontal, 16)
                                     .padding(.bottom, 10)
-                                Spacer()
+                                Spacer() // Pushes content to the left side
                             }
                         }
-                        
-                    }.rotationEffect(.degrees(180))
-                }.rotationEffect(.degrees(180))
-                    .background(Color.gray.opacity(0.1))
+                    }
+                    // Flip the message list vertically to make new messages appear at the bottom
+                    .rotationEffect(.degrees(180))
+                }
+                // Re-flip the entire scroll view so the layout looks normal to the user
+                .rotationEffect(.degrees(180))
+                .background(Color.gray.opacity(0.1)) // Light background for chat area
                 
-                HStack{
+                // Input field and send button at the bottom
+                HStack {
+                    // Text field for typing messages
                     TextField("Type something", text: $messageText)
                         .padding()
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(10)
-                        .onSubmit{
-                            //sendMessage
+                        .onSubmit {
+                            // Send the message when the user presses return
                             sendMessage(message: messageText)
                         }
-                    Button{
-                        //sendMessage
-                        sendMessage(message: messageText)
-                    }label: {
-                        Image(systemName: "paperplane.fill")
+                    
+                    // Send button (paper plane icon)
+                    Button {
+                        sendMessage(message: messageText) // Send message on button tap
+                    } label: {
+                        Image(systemName: "paperplane.fill") // SF Symbol for the paper plane
                     }
-                    .font(.system(size: 26))
+                    .font(.system(size: 26)) // Icon size
                     .padding(.horizontal, 10)
                 }
-                .padding()
+                .padding() // Padding around the entire HStack
             }
+
             TabView()
         }
         func sendMessage(message: String){
@@ -320,68 +337,77 @@ struct ContentView: View {
         }
     }
     
-    
-    struct LoginView: View {
-        @ObservedObject var viewModel: MedicationViewModel
-        @State private var email: String = ""
-        @State private var password: String = ""
-        @State private var navigateToMedications = false
-        
-        var body: some View {
-            NavigationStack {
-                ZStack {
-                    Color.white.ignoresSafeArea()
+struct LoginView: View {
+    @ObservedObject var viewModel: MedicationViewModel
+    @State private var email: String = ""
+    @State private var password: String = ""
+    @State private var navigateToMedications = false
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Spacer()
+                
+                Image("LogInPic")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 250, height: 250)
+
+                Text("Log In")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.black)
+                
+                VStack(spacing: 15) {
+                    TextField("Email", text: $email)
+                        .autocapitalization(.none)
+                        .keyboardType(.emailAddress)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
                     
-                    VStack(spacing: 30) {
-                        Image("LogInPic")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 350, height: 350)
-                        
-                        Text("Log In")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.black)
-                        
-                        VStack(alignment: .leading, spacing: 15) {
-                            TextField("Email", text: $email)
-                                .autocapitalization(.none)
-                                .keyboardType(.emailAddress)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(8)
-                            
-                            SecureField("Password", text: $password)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(8)
-                        }
-                        .padding(.horizontal, 40)
-                        
-                        Button(action: {
-                            // Log in logic
-                            print("Email: \(email)")
-                            print("Password: \(password)")
-                            navigateToMedications = true
-                        }) {
-                            Text("Log in")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                        }
-                        .padding(.horizontal, 40)
-                    }
+                    SecureField("Password", text: $password)
+                        .padding()
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
                 }
-                //  Modern navigationDestination
-                .navigationDestination(isPresented: $navigateToMedications) {
-                    MyMedicationsView(viewModel: viewModel)
+                .padding(.horizontal, 40)
+
+                Button(action: {
+                    // Log in logic
+                    print("Email: \(email)")
+                    print("Password: \(password)")
+                    navigateToMedications = true
+                }) {
+                    Text("Log in")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
                 }
+                .padding(.horizontal, 40)
+
+                Spacer()
+                
+                Text("""
+Disclaimer: PillPal is designed for informational and educational purposes only. This app does not provide medical diagnosis, treatment, or professional medical advice. Always consult a qualified healthcare provider, pharmacist, or doctor with any questions you may have regarding a medical condition, medication, or treatment plan.
+""")
+                .font(.caption)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+                
+            }
+            .background(Color.white.ignoresSafeArea())
+            .navigationDestination(isPresented: $navigateToMedications) {
+                MyMedicationsView(viewModel: viewModel)
             }
         }
     }
+}
+
     
     struct SignUpView: View {
         @State private var firstName: String = ""
@@ -465,73 +491,29 @@ struct ContentView: View {
     }
 
 
-//struct MyMedicationsView: View {
-//    @ObservedObject var viewModel: MedicationViewModel
-//    @State private var showingAddMedication = false
-//
-//    var body: some View {
-//        ZStack {
-//            Color(red: 122/255, green: 198/255, blue: 227/255)
-//                .ignoresSafeArea()
-//
-//            VStack {
-//                HStack {
-//                    Spacer()
-//
-//                    Button(action: {
-//                        showingAddMedication = true
-//                    }) {
-//                        Image(systemName: "plus.circle.fill")
-//                            .resizable()
-//                            .frame(width: 40, height: 40)
-//                            .foregroundColor(.white)
-//                            .shadow(radius: 4)
-//                    }
-//                    .padding(.trailing, 20)
-//                    .padding(.top, 50)
-//                }
-//
-//                Text("My Medications")
-//                    .font(.largeTitle)
-//                    .fontWeight(.bold)
-//                    .foregroundColor(.white)
-//                    .padding(.top, 20)
-//
-//
-//                List {
-//                    ForEach(viewModel.medications) { med in
-//                        VStack(alignment: .leading) {
-//                            Text(med.name)
-//                                .font(.headline)
-//                            Text("Frequency: \(med.frequency)")
-//                                .font(.subheadline)
-//                            ForEach(med.reminderTimes, id: \.self) { time in
-//                                Text("⏰ \(time.formatted(date: .omitted, time: .shortened))")
-//                                    .font(.caption)
-//                            }
-//                        }
-//                    }
-//                }
-//                TabView()
-//            }
-//        }
-//        .sheet(isPresented: $showingAddMedication) {
-//            AddMedicationView(viewModel: viewModel)
-//        }
-//    }
-//}
-
 struct MyMedicationsView: View {
     @StateObject var viewModel = MedicationViewModel()
     @State private var showingAddMedication = false
 
     var body: some View {
         ZStack {
-            Color(red: 122/255, green: 198/255, blue: 227/255)
+            Color("MedCol")
                 .ignoresSafeArea()
+            @State var appColor =  Color(red: 122/255, green: 198/255, blue: 227/255)
+                
 
             VStack {
+                Image("Paper")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 350, height: 200)
+                Text("My Medications")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.black)
+                    .padding(.top, 20)
                 HStack {
+                    
                     Spacer()
 
                     Button(action: {
@@ -540,23 +522,19 @@ struct MyMedicationsView: View {
                         Image(systemName: "plus.circle.fill")
                             .resizable()
                             .frame(width: 40, height: 40)
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
                             .shadow(radius: 4)
+                            //.offset(y: -150)
                     }
                     .padding(.trailing, 20)
                     .padding(.top, 50)
                 }
 
-                Text("My Medications")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding(.top, 20)
 
                 if viewModel.medications.isEmpty {
-                    Text("No medications added yet")
-                        .foregroundColor(.white)
-                        .padding(.top, 50)
+//                    Text("No medications added yet")
+//                        .foregroundColor(.black)
+//                        .padding(.top, 50)
                 } else {
                     List {
                         ForEach(viewModel.medications) { med in
