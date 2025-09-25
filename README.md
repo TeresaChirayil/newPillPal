@@ -1,0 +1,1 @@
+This project uses Machine Learning to scan different pills and identify them. There is also a feature to manually input your medications and get reminders. There is a also chat box you can use if you have questions about certain medication.
